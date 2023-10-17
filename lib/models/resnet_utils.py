@@ -35,8 +35,7 @@ from __future__ import print_function
 
 import collections
 import tensorflow as tf
-
-slim = tf.contrib.slim
+import tf_slim as slim
 
 class Block(collections.namedtuple('Block', ['scope', 'unit_fn', 'args'])):
     """A named tuple describing a ResNet block.
@@ -96,8 +95,8 @@ def conv2d_same(inputs, num_outputs, kernel_size, stride, rate=1, scope=None):
         pad_total = kernel_size_effective - 1
         pad_beg = pad_total // 2
         pad_end = pad_total - pad_beg
-        inputs = tf.pad(inputs,
-                        [[0, 0], [pad_beg, pad_end], [pad_beg, pad_end], [0, 0]])
+        inputs = tf.pad(tensor=inputs,
+                        paddings=[[0, 0], [pad_beg, pad_end], [pad_beg, pad_end], [0, 0]])
         return slim.conv2d(inputs, num_outputs, kernel_size, stride=stride,
                            rate=rate, padding='VALID', scope=scope)
 
@@ -145,12 +144,12 @@ def stack_blocks_dense(net, blocks, output_stride=None,
     rate = 1
 
     for block in blocks:
-        with tf.variable_scope(block.scope, 'block', [net]) as sc:
+        with tf.compat.v1.variable_scope(block.scope, 'block', [net]) as sc:
             for i, unit in enumerate(block.args):
                 if output_stride is not None and current_stride > output_stride:
                     raise ValueError('The target output_stride cannot be reached.')
 
-                with tf.variable_scope('unit_%d' % (i + 1), values=[net]):
+                with tf.compat.v1.variable_scope('unit_%d' % (i + 1), values=[net]):
                     unit_depth, unit_depth_bottleneck, unit_stride = unit
                     # If we have reached the target output_stride, then we need to employ
                     # atrous convolution with stride=1 and multiply the atrous rate by the
@@ -202,12 +201,12 @@ def resnet_arg_scope(weight_decay=0.0001,
         'decay': batch_norm_decay,
         'epsilon': batch_norm_epsilon,
         'scale': batch_norm_scale,
-        'updates_collections': tf.GraphKeys.UPDATE_OPS,
+        'updates_collections': tf.compat.v1.GraphKeys.UPDATE_OPS,
     }
     with slim.arg_scope(
             [slim.conv2d],
-            weights_regularizer=slim.l2_regularizer(weight_decay),
-            weights_initializer=slim.variance_scaling_initializer(),
+            weights_regularizer=tf.keras.regularizers.l2(0.5 * (weight_decay)),
+            weights_initializer=tf.compat.v1.keras.initializers.VarianceScaling(scale=2.0),
             activation_fn=tf.nn.relu,
             normalizer_fn=slim.batch_norm,
             normalizer_params=batch_norm_params):

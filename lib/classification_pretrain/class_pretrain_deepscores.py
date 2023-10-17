@@ -11,8 +11,8 @@ import tensorflow as tf
 
 import os
 
-import tensorflow.contrib.slim as slim
-import tensorflow.contrib.slim.nets as nets
+import tensorflow.contrib.slim.nets as nets #TODO Convert Tensorflow2 Code
+import tf_slim as slim
 
 resnet_v1 = nets.resnet_v1
 
@@ -103,15 +103,15 @@ if __name__ == '__main__':
 
     num_classes = 124
 
-    config = tf.ConfigProto()
+    config = tf.compat.v1.ConfigProto()
     config.gpu_options.allow_growth = True
-    sess = tf.Session(config=config)
+    sess = tf.compat.v1.Session(config=config)
 
     # Get the selected model.
     # Some of they require pre-trained ResNet
     print("Preparing the model ...")
-    input = tf.placeholder(tf.float32, shape=[None, img_size , img_size, 1])
-    label = tf.placeholder(tf.int32, shape=[None,num_classes])
+    input = tf.compat.v1.placeholder(tf.float32, shape=[None, img_size , img_size, 1])
+    label = tf.compat.v1.placeholder(tf.int32, shape=[None,num_classes])
 
 
     network = None
@@ -139,24 +139,24 @@ if __name__ == '__main__':
 
     out = tf.squeeze(out,[1,2])
     loss = slim.losses.softmax_cross_entropy(out, label)
-    tf.summary.scalar('losses/total_loss', loss)
+    tf.compat.v1.summary.scalar('losses/total_loss', loss)
 
 
-    optimizer = tf.train.AdamOptimizer(learning_rate=0.001)
+    optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=0.001)
     train_op = optimizer.minimize(
         loss=loss,
-        global_step=tf.train.get_global_step())
+        global_step=tf.compat.v1.train.get_global_step())
 
 
-    with tf.name_scope('accuracy'):
-        correct_prediction = tf.equal(tf.argmax(out, 1), tf.argmax(label, 1))
+    with tf.compat.v1.name_scope('accuracy'):
+        correct_prediction = tf.equal(tf.argmax(input=out, axis=1), tf.argmax(input=label, axis=1))
         correct_prediction = tf.cast(correct_prediction, tf.float32)
-    accuracy = tf.reduce_mean(correct_prediction)
+    accuracy = tf.reduce_mean(input_tensor=correct_prediction)
 
 
     # init variables and savers
-    saver = tf.train.Saver()
-    sess.run(tf.global_variables_initializer())
+    saver = tf.compat.v1.train.Saver()
+    sess.run(tf.compat.v1.global_variables_initializer())
 
     # potentioally load weights
     model_checkpoint_name = cfg.PRETRAINED_DIR +"/DeepScores/resnet_v1" + args.net.split("res")[1] + ".ckpt"

@@ -10,7 +10,7 @@ import scipy.special as sc
 
 
 np.random.seed(314)
-tf.set_random_seed(314)
+tf.compat.v1.set_random_seed(314)
 
 
 class DWSDetector:
@@ -22,13 +22,13 @@ class DWSDetector:
         self.saved_net = "backbone"
 
         self.tf_session = None
-        self.sess = tf.Session()
+        self.sess = tf.compat.v1.Session()
         print('Loading model')
 
         if "DeepScores" not in self.model_path:
-            self.input = tf.placeholder(tf.float32, shape=[None, None, None, 3])
+            self.input = tf.compat.v1.placeholder(tf.float32, shape=[None, None, None, 3])
         else:
-            self.input = tf.placeholder(tf.float32, shape=[None, None, None, 1])
+            self.input = tf.compat.v1.placeholder(tf.float32, shape=[None, None, None, 1])
 
         print("Initializing Model:" + self.config.model)
         used_heads = set()
@@ -51,7 +51,7 @@ class DWSDetector:
              substract_mean=False, individual_upsamp = self.config.individual_upsamp, paired_mode=self.config.paired_data,
             used_heads=self.used_heads, sparse_heads=parsed.sparse_heads)
 
-        self.saver = tf.train.Saver(max_to_keep=1000)
+        self.saver = tf.compat.v1.train.Saver(max_to_keep=1000)
         # self.sess.run(tf.global_variables_initializer())
         # self.sess.run(tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope='deep_watershed/energy_logits_pair0_3'))
         print("Loading weights")

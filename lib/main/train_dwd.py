@@ -9,10 +9,10 @@ sys.path.insert(0, os.path.dirname(__file__)[:-4])
 from models.dwd_net import build_dwd_net
 
 from datasets.factory import get_imdb
-from tensorflow.contrib import slim
 from utils.safe_softmax_wrapper import safe_softmax_cross_entropy_with_logits
 import roi_data_layer.roidb as rdl_roidb
 from roi_data_layer.layer import RoIDataLayer
+import tf_slim as slim
 #from utils.prefetch_wrapper import PrefetchWrapper
 from utils.prefetch_wrapper_cache import PrefetchWrapperCache as PrefetchWrapper
 
@@ -63,44 +63,44 @@ def main(parsed):
     save_objectness_function_handles(args)
 
     # tensorflow session
-    config = tf.ConfigProto()
+    config = tf.compat.v1.ConfigProto()
     config.gpu_options.allow_growth = True
-    sess = tf.Session(config=config)
+    sess = tf.compat.v1.Session(config=config)
 
     # input and output tensors
     if "DeepScores_300dpi" in args.dataset:
-        input = tf.placeholder(tf.float32, shape=[None, None, None, 1])
+        input = tf.compat.v1.placeholder(tf.float32, shape=[None, None, None, 1])
         resnet_dir = args.pretrained_dir + "/DeepScores/"
         refinenet_dir = args.pretrained_dir + "/DeepScores_semseg/"
 
     elif "DeepScores" in args.dataset:
-        input = tf.placeholder(tf.float32, shape=[None, None, None, 1])
+        input = tf.compat.v1.placeholder(tf.float32, shape=[None, None, None, 1])
         resnet_dir = args.pretrained_dir + "/DeepScores/"
         refinenet_dir = args.pretrained_dir + "/DeepScores_semseg/"
 
     elif "MUSICMA" in args.dataset:
-        input = tf.placeholder(tf.float32, shape=[None, None, None, 1])
+        input = tf.compat.v1.placeholder(tf.float32, shape=[None, None, None, 1])
         resnet_dir = args.pretrained_dir + "/DeepScores/"
         refinenet_dir = args.pretrained_dir + "/DeepScores_semseg/"
 
     elif "macrophages" in args.dataset:
-        input = tf.placeholder(tf.float32, shape=[None, None, None, 3])
+        input = tf.compat.v1.placeholder(tf.float32, shape=[None, None, None, 3])
         resnet_dir = args.pretrained_dir + "/ImageNet/"
         refinenet_dir = args.pretrained_dir + "/VOC2012/"
 
     elif "Dota_2018" in args.dataset:
-        input = tf.placeholder(tf.float32, shape=[None, None, None, 3])
+        input = tf.compat.v1.placeholder(tf.float32, shape=[None, None, None, 3])
         resnet_dir = args.pretrained_dir + "/ImageNet/"
         refinenet_dir = args.pretrained_dir + "/VOC2012/"
 
     else:
-        input = tf.placeholder(tf.float32, shape=[None, None, None, 3])
+        input = tf.compat.v1.placeholder(tf.float32, shape=[None, None, None, 3])
         resnet_dir = args.pretrained_dir + "/ImageNet/"
         refinenet_dir = args.pretrained_dir + "/VOC2012/"
 
     if not (len(args.training_help) == 1 and args.training_help[0] is None):
         # initialize helper_input
-        helper_input = tf.placeholder(tf.float32, shape=[None, None, None, input.shape[-1] + 1])
+        helper_input = tf.compat.v1.placeholder(tf.float32, shape=[None, None, None, input.shape[-1] + 1])
         feed_head = slim.conv2d(helper_input, input.shape[-1], [3, 3], scope='gt_feed_head')
         input = feed_head
 
@@ -112,21 +112,21 @@ def main(parsed):
 
     # use just one image summary OP for all tasks
     # train
-    train_pred_placeholder = tf.placeholder(tf.uint8, shape=[1, None, None, 3])
+    train_pred_placeholder = tf.compat.v1.placeholder(tf.uint8, shape=[1, None, None, 3])
     images_sums = []
     images_placeholders = []
 
     images_placeholders.append(train_pred_placeholder)
-    images_sums.append(tf.summary.image('DWD_debug_train_img', train_pred_placeholder))
-    train_images_summary_op = tf.summary.merge(images_sums)
+    images_sums.append(tf.compat.v1.summary.image('DWD_debug_train_img', train_pred_placeholder))
+    train_images_summary_op = tf.compat.v1.summary.merge(images_sums)
 
     # valid
-    valid_pred_placeholder = tf.placeholder(tf.uint8, shape=[1, None, None, 3])
+    valid_pred_placeholder = tf.compat.v1.placeholder(tf.uint8, shape=[1, None, None, 3])
     images_sums = []
 
     images_placeholders.append(valid_pred_placeholder)
-    images_sums.append(tf.summary.image('DWD_debug_valid_img', valid_pred_placeholder))
-    valid_images_summary_op = tf.summary.merge(images_sums)
+    images_sums.append(tf.compat.v1.summary.image('DWD_debug_valid_img', valid_pred_placeholder))
+    valid_images_summary_op = tf.compat.v1.summary.merge(images_sums)
 
     images_summary_op = [train_images_summary_op, valid_images_summary_op]
 
@@ -140,8 +140,8 @@ def main(parsed):
             [loss, optim, gt_placeholders, scalar_summary_op, images_summary_op, images_placeholders, mask_placholders])
 
     # init tensorflow session
-    saver = tf.train.Saver(max_to_keep=1000)
-    sess.run(tf.global_variables_initializer())
+    saver = tf.compat.v1.train.Saver(max_to_keep=1000)
+    sess.run(tf.compat.v1.global_variables_initializer())
 
     # load model weights
     checkpoint_dir = get_checkpoint_dir(args)
@@ -195,7 +195,7 @@ def main(parsed):
     #sess.run(tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope='deep_watershed/energy_logits_pair0'))
 
     # set up tensorboard
-    writer = tf.summary.FileWriter(checkpoint_dir, sess.graph)
+    writer = tf.compat.v1.summary.FileWriter(checkpoint_dir, sess.graph)
     # store config
     with open(checkpoint_dir+"/"+datetime.datetime.now().isoformat()+
             "__"+fingerprint+".txt", "w") as text_config:
@@ -246,7 +246,7 @@ def execute_combined_assign(args, data_layer, training_help, orig_assign, preped
     if rm_length is not None:
         past_losses = np.ones((len(loss_factors), rm_length), np.float32)
 
-    loss_scalings_placeholder = tf.placeholder(tf.float32, [len(loss_factors)])
+    loss_scalings_placeholder = tf.compat.v1.placeholder(tf.float32, [len(loss_factors)])
     loss_tot = None
     for i in range(len(preped_assigns)):
         if loss_tot is None:
@@ -255,8 +255,8 @@ def execute_combined_assign(args, data_layer, training_help, orig_assign, preped
             loss_tot += preped_assigns[i][0] * loss_scalings_placeholder[i]
 
     # init optimizer -- make sure optimizer is fresh
-    with tf.variable_scope("combined_opt" + str(0), reuse=False):
-        var_list = [var for var in tf.trainable_variables() if "BatchNorm" not in var.name and "bias" not in var.name]
+    with tf.compat.v1.variable_scope("combined_opt" + str(0), reuse=False):
+        var_list = [var for var in tf.compat.v1.trainable_variables() if "BatchNorm" not in var.name and "bias" not in var.name]
 
         # maybe exclude shortcuts from regularization
         var_list_res = [var for var in var_list if "resnet_" in var.name]
@@ -267,14 +267,14 @@ def execute_combined_assign(args, data_layer, training_help, orig_assign, preped
         loss_tot_reg = loss_tot + loss_L2_downsam + loss_L2_upsam
         optimizer_type = args.optim
         if args.optim == 'rmsprop':
-            optim = tf.train.RMSPropOptimizer(learning_rate=args.learning_rate, decay=0.995).minimize(loss_tot_reg,
+            optim = tf.compat.v1.train.RMSPropOptimizer(learning_rate=args.learning_rate, decay=0.995).minimize(loss_tot_reg,
                                                                                                       var_list=var_list)
         elif args.optim == 'adam':
-            optim = tf.train.AdamOptimizer(learning_rate=args.learning_rate).minimize(loss_tot_reg, var_list=var_list)
+            optim = tf.compat.v1.train.AdamOptimizer(learning_rate=args.learning_rate).minimize(loss_tot_reg, var_list=var_list)
         else:
-            optim = tf.train.MomentumOptimizer(learning_rate=args.learning_rate, momentum=0.9).minimize(loss_tot_reg,
+            optim = tf.compat.v1.train.MomentumOptimizer(learning_rate=args.learning_rate, momentum=0.9).minimize(loss_tot_reg,
                                                                                                         va_list=var_list)
-    opt_inizializers = [var.initializer for var in tf.global_variables() if "combined_opt" + str(0) in var.name]
+    opt_inizializers = [var.initializer for var in tf.compat.v1.global_variables() if "combined_opt" + str(0) in var.name]
     sess.run(opt_inizializers)
     # compute step
     print("training on combined assignments")
@@ -466,8 +466,8 @@ def focal_loss(prediction_tensor, target_tensor, weights=None, alpha=0.25, gamma
     # For negative prediction, only need consider back part loss, front part is 0;
     # target_tensor > zeros <=> z=1, so negative coefficient = 0.
     neg_p_sub = array_ops.where(target_tensor > zeros, zeros, softmax_p)
-    per_entry_cross_ent = - alpha * (pos_p_sub ** gamma) * tf.log(tf.clip_by_value(softmax_p, 1e-8, 1.0)) \
-                          - (1 - alpha) * (neg_p_sub ** gamma) * tf.log(tf.clip_by_value(1.0 - softmax_p, 1e-8, 1.0))
+    per_entry_cross_ent = - alpha * (pos_p_sub ** gamma) * tf.math.log(tf.clip_by_value(softmax_p, 1e-8, 1.0)) \
+                          - (1 - alpha) * (neg_p_sub ** gamma) * tf.math.log(tf.clip_by_value(1.0 - softmax_p, 1e-8, 1.0))
     # print(tf.reduce_mean(per_entry_cross_ent))
     return per_entry_cross_ent
     # return tf.reduce_mean(per_entry_cross_ent)
@@ -478,7 +478,7 @@ def initialize_assignement(aid, assign, imdb, network_heads, sess, data_layer, i
 
     loss_mask_placeholders = []
     for pair_nr in range(args.paired_data):
-        loss_mask_placeholders.append([tf.placeholder(tf.float32, shape=[None, None, None, 1]) for x in assign["ds_factors"]])
+        loss_mask_placeholders.append([tf.compat.v1.placeholder(tf.float32, shape=[None, None, None, 1]) for x in assign["ds_factors"]])
 
 
     pair_contrib_loss = []
@@ -499,14 +499,14 @@ def initialize_assignement(aid, assign, imdb, network_heads, sess, data_layer, i
                 mask = tf.squeeze(split1 > 0, -1)
                 debug_fetch[str(x)]["mask"] = mask
 
-                masked_pred = tf.boolean_mask(network_heads[s_task_id][x], mask)
+                masked_pred = tf.boolean_mask(tensor=network_heads[s_task_id][x], mask=mask)
                 debug_fetch[str(x)]["masked_pred"] = masked_pred
 
-                masked_gt = tf.boolean_mask(gt_placeholders[x], mask)
+                masked_gt = tf.boolean_mask(tensor=gt_placeholders[x], mask=mask)
                 debug_fetch[str(x)]["masked_gt"] = masked_gt
 
                 # norm prediction
-                norms = tf.norm(masked_pred, ord="euclidean", axis=-1, keep_dims=True)
+                norms = tf.norm(tensor=masked_pred, ord="euclidean", axis=-1, keepdims=True)
                 masked_pred = masked_pred / norms
                 debug_fetch[str(x)]["masked_pred_normed"] = masked_pred
 
@@ -528,7 +528,7 @@ def initialize_assignement(aid, assign, imdb, network_heads, sess, data_layer, i
                 loss_components = [tf.nn.softmax_cross_entropy_with_logits(
                     logits=network_heads[s_task_id][
                         nr_feature_maps - nr_ds_factors + x],
-                    labels=gt_placeholders[pair_nr][x], dim=-1) for x in range(nr_ds_factors)]
+                    labels=tf.stop_gradient(gt_placeholders[pair_nr][x]), axis=-1) for x in range(nr_ds_factors)]
                 # loss_components = [focal_loss(prediction_tensor=network_heads[assign["stamp_func"][0]][assign["stamp_args"]["loss"]][nr_feature_maps-nr_ds_factors+x],
                 #                                                target_tensor=gt_placeholders[x]) for x in range(nr_ds_factors)]
 
@@ -539,7 +539,7 @@ def initialize_assignement(aid, assign, imdb, network_heads, sess, data_layer, i
                     debug_fetch["labels" + str(x)] = gt_placeholders[pair_nr][x]
                 debug_fetch["loss_components_softmax"] = loss_components
             else:
-                loss_components = [tf.losses.mean_squared_error(
+                loss_components = [tf.compat.v1.losses.mean_squared_error(
                     predictions=network_heads[s_task_id][
                         nr_feature_maps - nr_ds_factors + x],
                     labels=gt_placeholders[pair_nr][x], reduction="none") for x in range(nr_ds_factors)]
@@ -555,14 +555,14 @@ def initialize_assignement(aid, assign, imdb, network_heads, sess, data_layer, i
                 cond_result = loss_components[i]
             comp_multy.append(tf.multiply(cond_result, loss_mask_placeholders[pair_nr][i]))
         # call tf.reduce mean on each loss component
-        final_loss_components = [tf.reduce_mean(x) for x in comp_multy]
+        final_loss_components = [tf.reduce_mean(input_tensor=x) for x in comp_multy]
 
         stacked_components = tf.stack(final_loss_components)
 
         if assign["layer_loss_aggregate"] == "min":
-            loss = tf.reduce_min(stacked_components)
+            loss = tf.reduce_min(input_tensor=stacked_components)
         elif assign["layer_loss_aggregate"] == "avg":
-            loss = tf.reduce_mean(stacked_components)
+            loss = tf.reduce_mean(input_tensor=stacked_components)
         else:
             raise NotImplementedError("unknown layer aggregate")
 
@@ -614,21 +614,21 @@ def initialize_assignement(aid, assign, imdb, network_heads, sess, data_layer, i
         # ---------------------------------------------------------------------
 
     stacked_components = tf.stack(pair_contrib_loss)
-    loss = tf.reduce_mean(stacked_components)
+    loss = tf.reduce_mean(input_tensor=stacked_components)
     if args.train_only_combined != "True":
         # init optimizer
-        var_list = [var for var in tf.trainable_variables()]
+        var_list = [var for var in tf.compat.v1.trainable_variables()]
         optimizer_type = args.optim
         loss_L2 = tf.add_n([tf.nn.l2_loss(v) for v in var_list
                             if 'bias' not in v.name]) * args.regularization_coefficient
         loss += loss_L2
         if optimizer_type == 'rmsprop':
-            optim = tf.train.RMSPropOptimizer(learning_rate=args.learning_rate, decay=0.995).minimize(loss,
+            optim = tf.compat.v1.train.RMSPropOptimizer(learning_rate=args.learning_rate, decay=0.995).minimize(loss,
                                                                                                       var_list=var_list)
         elif optimizer_type == 'adam':
-            optim = tf.train.AdamOptimizer(learning_rate=args.learning_rate).minimize(loss, var_list=var_list)
+            optim = tf.compat.v1.train.AdamOptimizer(learning_rate=args.learning_rate).minimize(loss, var_list=var_list)
         else:
-            optim = tf.train.MomentumOptimizer(learning_rate=args.learning_rate, momentum=0.9).minimize(loss,
+            optim = tf.compat.v1.train.MomentumOptimizer(learning_rate=args.learning_rate, momentum=0.9).minimize(loss,
                                                                                                         var_list=var_list)
     else:
         optim = None
@@ -636,22 +636,22 @@ def initialize_assignement(aid, assign, imdb, network_heads, sess, data_layer, i
     # init summary operations
     # define summary ops
     scalar_sums = []
-    scalar_sums.append(tf.summary.scalar("train_loss_" + get_config_id(assign) + "_", loss))
+    scalar_sums.append(tf.compat.v1.summary.scalar("train_loss_" + get_config_id(assign) + "_", loss))
 
     for comp_nr in range(len(loss_components)):
-        scalar_sums.append(tf.summary.scalar("train_loss_component_" + get_config_id(assign) + "Nr" + str(comp_nr) + "_",
+        scalar_sums.append(tf.compat.v1.summary.scalar("train_loss_component_" + get_config_id(assign) + "Nr" + str(comp_nr) + "_",
                                              final_loss_components[comp_nr]))
 
-    train_scalar_summary_op = tf.summary.merge(scalar_sums)
+    train_scalar_summary_op = tf.compat.v1.summary.merge(scalar_sums)
 
     scalar_sums = []
-    scalar_sums.append(tf.summary.scalar("valid_loss_" + get_config_id(assign) + "_", loss))
+    scalar_sums.append(tf.compat.v1.summary.scalar("valid_loss_" + get_config_id(assign) + "_", loss))
 
     for comp_nr in range(len(loss_components)):
-        scalar_sums.append(tf.summary.scalar("valid_loss_component_" + get_config_id(assign) + "Nr" + str(comp_nr) + "_",
+        scalar_sums.append(tf.compat.v1.summary.scalar("valid_loss_component_" + get_config_id(assign) + "Nr" + str(comp_nr) + "_",
                                              final_loss_components[comp_nr]))
 
-    valid_scalar_summary_op = tf.summary.merge(scalar_sums)
+    valid_scalar_summary_op = tf.compat.v1.summary.merge(scalar_sums)
 
     scalar_summary_op = [train_scalar_summary_op, valid_scalar_summary_op]
 
@@ -938,7 +938,7 @@ def get_gt_placeholders(assign, imdb, paired_data, nr_classes, args):
     gt_placehoders = []
     for pair_nr in range(paired_data):
         gt_dim = assign["stamp_func"][1](None, assign["stamp_args"], nr_classes, args)
-        gt_placehoders.append([tf.placeholder(tf.float32, shape=[None, None, None, gt_dim]) for x in assign["ds_factors"]])
+        gt_placehoders.append([tf.compat.v1.placeholder(tf.float32, shape=[None, None, None, gt_dim]) for x in assign["ds_factors"]])
     return gt_placehoders
 
 

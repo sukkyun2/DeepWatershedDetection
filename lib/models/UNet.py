@@ -65,7 +65,7 @@ def build_u_net(x, keep_prob, channels, n_class, layers=4, features_root=16, fil
 
     # down layers
     for layer in range(0, layers):
-        with tf.name_scope("unet_down_conv_{}".format(str(layer))):
+        with tf.compat.v1.name_scope("unet_down_conv_{}".format(str(layer))):
             features = 2 ** layer * features_root
             stddev = np.sqrt(2 / (filter_size ** 2 * features))
             if layer == 0:
@@ -107,7 +107,7 @@ def build_u_net(x, keep_prob, channels, n_class, layers=4, features_root=16, fil
                 in_node = dw_h_convs[layers - 1]
                 g = []
                 for layer in range(layers - 2, -1, -1):
-                    with tf.name_scope("unet_up_conv_{}_stage_{}_pair_{}".format(str(layer), stage, str(sub_b))):
+                    with tf.compat.v1.name_scope("unet_up_conv_{}_stage_{}_pair_{}".format(str(layer), stage, str(sub_b))):
                         features = 2 ** (layer + 1) * features_root
                         stddev = np.sqrt(2 / (filter_size ** 2 * features))
 
@@ -147,7 +147,7 @@ def build_u_net(x, keep_prob, channels, n_class, layers=4, features_root=16, fil
             in_node = dw_h_convs[layers - 1]
             g = []
             for layer in range(layers - 2, -1, -1):
-                with tf.name_scope("unet_up_conv_{}_stage_{}_pair_{}".format(str(layer), stage, "0")):
+                with tf.compat.v1.name_scope("unet_up_conv_{}_stage_{}_pair_{}".format(str(layer), stage, "0")):
                     features = 2 ** (layer + 1) * features_root
                     stddev = np.sqrt(2 / (filter_size ** 2 * features))
 
@@ -184,7 +184,7 @@ def build_u_net(x, keep_prob, channels, n_class, layers=4, features_root=16, fil
         in_node = dw_h_convs[layers - 1]
         g = []
         for layer in range(layers - 2, -1, -1):
-            with tf.name_scope("unet_up_conv_{}_stage_{}_pair_{}".format(str(layer), "df", "d")):
+            with tf.compat.v1.name_scope("unet_up_conv_{}_stage_{}_pair_{}".format(str(layer), "df", "d")):
                 features = 2 ** (layer + 1) * features_root
                 stddev = np.sqrt(2 / (filter_size ** 2 * features))
 

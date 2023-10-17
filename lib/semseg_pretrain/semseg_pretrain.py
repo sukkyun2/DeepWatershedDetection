@@ -21,14 +21,14 @@ def main(unused_argv):
         resnet_dir = cfg.PRETRAINED_DIR+"/DeepScores/"
         refinenet_dir = cfg.PRETRAINED_DIR+"/DeepScores_semseg/"
         num_classes = 124
-        input = tf.placeholder(tf.float32, shape=[None, args.crop_size[0], args.crop_size[1], 1])
+        input = tf.compat.v1.placeholder(tf.float32, shape=[None, args.crop_size[0], args.crop_size[1], 1])
         substract_mean = False
     elif args.dataset == "VOC2012":
         data_reader = pascalvoc_semseg_datareader.voc_seg_dataset_reader(cfg.DATA_DIR+"/VOC2012")
         resnet_dir = cfg.PRETRAINED_DIR+"/ImageNet/"
         refinenet_dir = cfg.PRETRAINED_DIR+"/VOC2012/"
         num_classes = 21
-        input = tf.placeholder(tf.float32, shape=[None, None, None, 3])
+        input = tf.compat.v1.placeholder(tf.float32, shape=[None, None, None, 3])
         substract_mean = True
     else:
         print("Unknown dataset")
@@ -36,25 +36,25 @@ def main(unused_argv):
 
     #train_images, train_annotations = data_reader.next_batch(20)
 
-    config = tf.ConfigProto()
+    config = tf.compat.v1.ConfigProto()
     config.gpu_options.allow_growth = True
-    sess = tf.Session(config=config)
+    sess = tf.compat.v1.Session(config=config)
 
     # init model
     print("Preparing the model ...")
-    output = tf.placeholder(tf.float32, shape=[None, None, None, num_classes])
+    output = tf.compat.v1.placeholder(tf.float32, shape=[None, None, None, num_classes])
 
     network, init_fn = build_refinenet(input, preset_model = args.model, num_classes=num_classes,pretrained_dir=resnet_dir, substract_mean=substract_mean)
 
     # init optimizer
     # Compute your (unweighted) softmax cross entropy loss
-    loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=network, labels=output))
+    loss = tf.reduce_mean(input_tensor=tf.nn.softmax_cross_entropy_with_logits(logits=network, labels=tf.stop_gradient(output)))
 
-    opt = tf.train.RMSPropOptimizer(learning_rate=0.0001, decay=0.995).minimize(loss, var_list=[var for var in
-                                                                                               tf.trainable_variables()])
+    opt = tf.compat.v1.train.RMSPropOptimizer(learning_rate=0.0001, decay=0.995).minimize(loss, var_list=[var for var in
+                                                                                               tf.compat.v1.trainable_variables()])
 
-    saver = tf.train.Saver(max_to_keep=1000)
-    sess.run(tf.global_variables_initializer())
+    saver = tf.compat.v1.train.Saver(max_to_keep=1000)
+    sess.run(tf.compat.v1.global_variables_initializer())
 
     # load classification weights or continue training from older checkpoint
     # If a pre-trained ResNet is required, load the weights. --> depends on path tiven to build_refinenet
@@ -133,4 +133,4 @@ if __name__ == '__main__':
   parser.add_argument("--dataset", type=str, default="DeepScores", help="DeepScores or VOC2012")
   parser.add_argument('--model', type=str, default="RefineNet-Res101", help='The model you are using. Currently supports: RefineNet-Res50, RefineNet-Res101, RefineNet-Res152')
   args, unparsed = parser.parse_known_args()
-  tf.app.run(main=main, argv=[sys.argv[0]] + unparsed)
+  tf.compat.v1.app.run(main=main, argv=[sys.argv[0]] + unparsed)

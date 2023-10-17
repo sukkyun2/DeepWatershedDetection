@@ -1,6 +1,6 @@
 from models.RefineNet import build_refinenet
 import tensorflow as tf
-from tensorflow.contrib import slim
+import tf_slim as slim
 #from main.config import cfg
 from models.UNet import build_u_net
 
@@ -21,7 +21,7 @@ def build_dwd_net(input,model,num_classes,pretrained_dir, max_energy,individual_
         raise NotImplementedError
 
     network_heads = dict()
-    with tf.variable_scope('exit_convs'):
+    with tf.compat.v1.variable_scope('exit_convs'):
         for ix, us_stem in enumerate(individual_upsamp):
             for us_head in us_stem:
                 assign = assigns[int(us_head.split("_")[0])]
