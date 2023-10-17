@@ -14,13 +14,11 @@ cmdclass = {}
 ext_modules = [
     Extension(
         "utils.bbox",
-        ["utils/bbox.pyx"],
-        extra_compile_args=["-Wno-cpp", "-Wno-unused-function"],
+        ["utils/bbox.pyx"]
     ),
     Extension(
         "utils.cython_nms",
-        ["utils/nms.pyx"],
-        extra_compile_args=["-Wno-cpp", "-Wno-unused-function"],
+        ["utils/nms.pyx"]
     )
 ]
 cmdclass.update({'build_ext': build_ext})
