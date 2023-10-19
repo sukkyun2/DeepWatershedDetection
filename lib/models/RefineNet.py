@@ -1,20 +1,20 @@
 import tensorflow as tf
-from tensorflow.contrib import slim
+import tf_slim as slim
 import models.resnet_v1 as resnet_v1
 
 import os, sys
 
 def Upsampling_scale(inputs,scale):
-    inputs = tf.Print(inputs, [tf.shape(inputs)], "Before scaling")
-    outputs = tf.image.resize_bilinear(inputs, size=[tf.shape(inputs)[1]*scale,  tf.shape(inputs)[2]*scale])
-    outputs = tf.Print(outputs, [tf.shape(outputs)], "After scaling")
+    inputs = tf.compat.v1.Print(inputs, [tf.shape(input=inputs)], "Before scaling")
+    outputs = tf.image.resize(inputs, size=[tf.shape(input=inputs)[1]*scale,  tf.shape(input=inputs)[2]*scale], method=tf.image.ResizeMethod.BILINEAR)
+    outputs = tf.compat.v1.Print(outputs, [tf.shape(input=outputs)], "After scaling")
     return outputs
 
 
 def Upsampling(inputs,shape_1, shape_2):
     #inputs = tf.Print(inputs, [tf.shape(inputs)], "Before scaling")
     #inputs = tf.Print(inputs, [shape_1, shape_2], "scale goal")
-    outputs = tf.image.resize_bilinear(inputs, size=[shape_1,  shape_2])
+    outputs = tf.image.resize(inputs, size=[shape_1,  shape_2], method=tf.image.ResizeMethod.BILINEAR)
     #outputs = tf.Print(outputs, [tf.shape(outputs)], "After scaling")
     return outputs
 
@@ -126,8 +126,8 @@ def MultiResolutionFusion(high_inputs=None,low_inputs=None,n_filters=256):
         rcu_high_1 = high_inputs[0]
         rcu_high_2 = high_inputs[1]
 
-        rcu_high_1 = Upsampling(slim.conv2d(rcu_high_1, n_filters, 3, activation_fn=None),tf.shape(rcu_low_1)[1],tf.shape(rcu_low_1)[2])
-        rcu_high_2 = Upsampling(slim.conv2d(rcu_high_2, n_filters, 3, activation_fn=None),tf.shape(rcu_low_1)[1],tf.shape(rcu_low_1)[2])
+        rcu_high_1 = Upsampling(slim.conv2d(rcu_high_1, n_filters, 3, activation_fn=None),tf.shape(input=rcu_low_1)[1],tf.shape(input=rcu_low_1)[2])
+        rcu_high_2 = Upsampling(slim.conv2d(rcu_high_2, n_filters, 3, activation_fn=None),tf.shape(input=rcu_low_1)[1],tf.shape(input=rcu_low_1)[2])
 
         rcu_high = tf.add(rcu_high_1,rcu_high_2)
 
@@ -230,7 +230,7 @@ def build_refinenet(inputs, num_classes= None, preset_model='RefineNet-Res101', 
             g[2] = RefineBlock(g[1], h[2])
             g[3] = RefineBlock(g[2], h[3])
 
-            g[3] = Upsampling(g[3], tf.shape(inputs)[1], tf.shape(inputs)[2])
+            g[3] = Upsampling(g[3], tf.shape(input=inputs)[1], tf.shape(input=inputs)[2])
 
             g_list.append(g)
 
@@ -250,7 +250,7 @@ def build_refinenet(inputs, num_classes= None, preset_model='RefineNet-Res101', 
         g[2] = RefineBlock(g[1], h[2])
         g[3] = RefineBlock(g[2], h[3])
 
-        g[3] = Upsampling(g[3], tf.shape(inputs)[1], tf.shape(inputs)[2])
+        g[3] = Upsampling(g[3], tf.shape(input=inputs)[1], tf.shape(input=inputs)[2])
 
         # if upscaling_method.lower() == "conv":
         #     net = ConvUpscaleBlock(net, 256, kernel_size=[3, 3], scale=2)
@@ -270,7 +270,7 @@ def build_refinenet(inputs, num_classes= None, preset_model='RefineNet-Res101', 
 
 
 def mean_image_subtraction(inputs, means=[123.68, 116.78, 103.94]):
-    inputs=tf.to_float(inputs)
+    inputs=tf.cast(inputs, dtype=tf.float32)
     num_channels = inputs.get_shape().as_list()[-1]
     if len(means) != num_channels:
       raise ValueError('len(means) must match the number of channels')

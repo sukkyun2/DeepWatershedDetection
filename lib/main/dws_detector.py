@@ -9,7 +9,7 @@ from datasets import fcn_groundtruth
 
 
 np.random.seed(314)
-tf.set_random_seed(314)
+tf.compat.v1.set_random_seed(314)
 
 
 class DWSDetector:
@@ -24,19 +24,19 @@ class DWSDetector:
 
         self.tf_session = None
         self.root_dir = cfg.ROOT_DIR
-        self.sess = tf.Session()
+        self.sess = tf.compat.v1.Session()
         print('Loading model')
 
         if "realistic" in self.model_path:
-            self.input = tf.placeholder(tf.float32, shape=[None, None, None, 3])
+            self.input = tf.compat.v1.placeholder(tf.float32, shape=[None, None, None, 3])
         else:
-            self.input = tf.placeholder(tf.float32, shape=[None, None, None, 1])
+            self.input = tf.compat.v1.placeholder(tf.float32, shape=[None, None, None, 1])
 
         self.network_heads, self.init_fn = build_dwd_net(self.input, model=self.model_name, num_classes=imdb.num_classes,
                                                pretrained_dir="", substract_mean=False,  individual_upsamp = individual_upsamp)
 
-        self.saver = tf.train.Saver(max_to_keep=1000)
-        self.sess.run(tf.global_variables_initializer())
+        self.saver = tf.compat.v1.train.Saver(max_to_keep=1000)
+        self.sess.run(tf.compat.v1.global_variables_initializer())
         print("Loading weights")
         self.saver.restore(self.sess, self.root_dir + "/" + self.model_path + "/" + self.saved_net)
         self.tf_session = self.sess

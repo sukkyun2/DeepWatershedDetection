@@ -1,9 +1,10 @@
 easydict
 numpy
 Cython
-tensorflow==1.4.1
+tensorflow==1.15.0
 scipy
 pycocotools
 matplotlib
 pandas
 opencv-python
+tf-slim==1.0

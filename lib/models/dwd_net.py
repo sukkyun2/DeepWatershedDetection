@@ -1,6 +1,6 @@
 from models.RefineNet import build_refinenet
 import tensorflow as tf
-from tensorflow.contrib import slim
+import tf_slim as slim
 from main.config import cfg
 
 
@@ -10,7 +10,7 @@ def build_dwd_net(input,model,num_classes,pretrained_dir,substract_mean = False,
 
     if individual_upsamp == "True":
         network_heads = dict()
-        with tf.variable_scope('deep_watershed'):
+        with tf.compat.v1.variable_scope('deep_watershed'):
 
 
             # classification
@@ -48,7 +48,7 @@ def build_dwd_net(input,model,num_classes,pretrained_dir,substract_mean = False,
 
     else:
         network_heads = dict()
-        with tf.variable_scope('deep_watershed'):
+        with tf.compat.v1.variable_scope('deep_watershed'):
 
             network_heads["stamp_class"] = dict()
             # class binary
