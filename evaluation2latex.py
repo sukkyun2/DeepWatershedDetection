@@ -89,18 +89,29 @@ def add_global_averages(df):
     print("asd")
     return df
 
-if __name__ == '__main__':
+
+def evaluation2latex():
+    eval_pickle_dwd = 'evaluation_renamed.pickle'
+    results_dict_dwd = load_results(eval_pickle_dwd)
+    dwd_df = print_latex(results_dict_dwd)
+    eval_pickle_rcnn = 'evaluation_renamed_rcnn.pickle'
+    results_dict_rcnn = load_results(eval_pickle_rcnn)
+    rcnn_df = print_latex(results_dict_rcnn)
+    merged = merge_dfs([dwd_df, rcnn_df])
+    merged = add_global_averages(merged)
+    print(merged.to_markdown())
+    halved = pd.concat([merged[:54].reset_index(drop=True), merged[54:].reset_index(drop=True)], axis=1)
+    print(halved.to_latex(index=False))
+
+
+def evaluation2md():
     eval_pickle_dwd = 'evaluation_renamed.pickle'
     results_dict_dwd = load_results(eval_pickle_dwd)
     dwd_df = print_latex(results_dict_dwd)
 
-    eval_pickle_rcnn = 'evaluation_renamed_rcnn.pickle'
-    results_dict_rcnn = load_results(eval_pickle_rcnn)
-    rcnn_df = print_latex(results_dict_rcnn)
+    print(dwd_df.to_markdown())
 
-    merged = merge_dfs([dwd_df, rcnn_df])
-    merged = add_global_averages(merged)
 
-    print(merged.to_latex())
-    halved = pd.concat([merged[:54].reset_index(drop=True), merged[54:].reset_index(drop=True)], axis=1)
-    print(halved.to_latex(index=False))
+if __name__ == '__main__':
+    evaluation2md()
+    # evaluation2latex()

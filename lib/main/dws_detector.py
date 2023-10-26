@@ -160,8 +160,13 @@ def get_images(data, gt_boxes=None, gt=False, text=False):
         im_gt = Image.fromarray(data[0].astype("uint8"))
         draw = ImageDraw.Draw(im_gt)
         # overlay GT boxes
-        for row in gt_boxes:
+        for idx, row in enumerate(gt_boxes):
             # cv2.rectangle(im_input, (row[0], row[1], row[2], row[3]), (0, 255, 0), 1)
+            if row[2] < row[0]:
+                import warnings
+                warnings.warn(f'skip a row, index : {idx}')
+                break
+
             draw.rectangle(((row[0], row[1]), (row[2], row[3])), outline=(12,123,220), width=3)
 
     if text:

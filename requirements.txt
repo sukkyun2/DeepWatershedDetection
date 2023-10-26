@@ -8,3 +8,4 @@ matplotlib
 pandas
 opencv-python
 tf-slim==1.0
+protobuf==3.20
