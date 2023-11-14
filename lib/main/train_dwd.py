@@ -777,8 +777,9 @@ def load_database(args):
 
     if roidb_val is not None:
         data_layer_val = RoIDataLayer(roidb_val, imdb_val.num_classes, random=True)
+        return imdb, roidb, imdb_val, roidb_val, data_layer, data_layer_val
 
-    return imdb, roidb, imdb_val, roidb_val, data_layer, data_layer_val
+    return imdb, roidb, imdb_val, roidb_val, data_layer, None
 
 
 def get_nr_classes():
