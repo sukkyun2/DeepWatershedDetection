@@ -3,6 +3,20 @@ This repository holds the code to train and evaluate DWD models.
 The documentation is intended enable easy use of the code, for an explanation of the
 methods please refer to the original publication.
 
+#### Introduction
+This repository was used for `Artificial Intelligence Course` of Chungbuk National University.   
+Related documents can be found [Github WIKI](https://github.com/sukkyun2/DeepWatershedDetection/wiki)!
+
+- [00. 인공지능 프로젝트 요약](https://github.com/sukkyun2/DeepWatershedDetection/wiki/00.-%EC%9D%B8%EA%B3%B5%EC%A7%80%EB%8A%A5-%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8-%EC%9A%94%EC%95%BD)
+- [01. Report#1](https://github.com/sukkyun2/DeepWatershedDetection/wiki/01.-Report%231)
+- [02. Report#2](https://github.com/sukkyun2/DeepWatershedDetection/wiki/02.-Report%232)
+- [03. Report#3](https://github.com/sukkyun2/DeepWatershedDetection/wiki/03.-Report%233)
+- [04. Report#4](https://github.com/sukkyun2/DeepWatershedDetection/wiki/04.-Report%234)
+- [05. Report#5](https://github.com/sukkyun2/DeepWatershedDetection/wiki/05.-Report%235)
+- [06. Report#6](https://github.com/sukkyun2/DeepWatershedDetection/wiki/06.-Report%236)
+- [07. Report#7](https://github.com/sukkyun2/DeepWatershedDetection/wiki/07.-Report%237)
+- [08. Report#8](https://github.com/sukkyun2/DeepWatershedDetection/wiki/08.-Report%238)
+
 #### Installation
 The code is tested on python version 3.6 and Tensorflow 1.4.1, to install dependencies run inside the repo base directory (`repo_home`):
 `pip install -r requirements.txt`. The image database module taken from the original [fast r-cnn repository](https://github.com/rbgirshick/fast-rcnn) and it has some cython code that needs to be compiled by running `make all` inside lib.
