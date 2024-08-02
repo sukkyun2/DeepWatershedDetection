@@ -17,6 +17,9 @@ Related documents can be found [Github WIKI](https://github.com/sukkyun2/DeepWat
 - [07. Report#7](https://github.com/sukkyun2/DeepWatershedDetection/wiki/07.-Report%237)
 - [08. Report#8](https://github.com/sukkyun2/DeepWatershedDetection/wiki/08.-Report%238)
 
+A paper has also been published at the [_Korea Computer Congress 2024 (KCC 2024)_](https://www.kiise.or.kr/conference/kcc/2024/).   
+You can find the related paper and the poster for the paper in the `docs` subdirectory.
+
 #### Installation
 The code is tested on python version 3.6 and Tensorflow 1.4.1, to install dependencies run inside the repo base directory (`repo_home`):
 `pip install -r requirements.txt`. The image database module taken from the original [fast r-cnn repository](https://github.com/rbgirshick/fast-rcnn) and it has some cython code that needs to be compiled by running `make all` inside lib.
